@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import ReactDOM from 'react-dom'
-import { Button, Select, Input, Divider, Card, Row, Col, Tag, message } from 'antd'
+import { Button, Select, Input, Divider, Card, Row, Col, Tag, Empty, message } from 'antd'
 import axios from 'axios'
 
 const { TextArea } = Input
@@ -21,8 +21,12 @@ const ScriptLanguages = [
 const initialValues = {
   filename: 'demo1',
   styleLanguage: 'css',
-  styleCode: '',
   scriptLanguage: 'javascript',
+  styleCode: `
+body {
+    padding: 10px;
+}
+`,
   scriptCode: `
 import React, { useState, useCallback } from 'react'
 import ReactDOM from 'react-dom'
@@ -46,12 +50,13 @@ ReactDOM.render(<App />, document.querySelector('#app'));
 const App = () => {
   const [loading, setLoading] = useState(false)
 
-  const [runData, setRunData] = useState({
+  const [execData, setExecData] = useState({
     code: 0,
     timestap: 0,
     webpackTime: 0,
     installPkgsTime: 0,
     filePath: ''
+    // filePath: 'http://localhost:8080/e368b9938746fa090d6afd3628355133/'
   })
 
   const [formData, setFormData] = useState({
@@ -64,22 +69,22 @@ const App = () => {
 
   const handleSubmit = async () => {
     setLoading(true)
-    console.log(111)
-    console.log(formData)
     const { data } = await axios.post('/code', formData)
     if (data.code) {
       message.error(data.message)
     } else {
-      setRunData(data)
+      setExecData(data)
     }
     console.log(222)
     console.log(data)
     setLoading(false)
   }
 
+  const iframeHeight = `calc(100vh - ${20 + 50 + 12 * 2}px)`
+
   return (
     <div style={{ padding: 10 }}>
-      <Row>
+      <Row gutter={[10, 10]}>
         <Col span={8}>
           <Card
             title={
@@ -95,21 +100,13 @@ const App = () => {
             size="small"
           >
             <TextArea
-              rows={10}
-              value={formData.styleCode}
+              style={{ height: 200 }}
+              value={formData.styleCode.trim()}
               onChange={e => {
                 handleChange({ styleCode: e.target.value })
               }}
             />
           </Card>
-        </Col>
-        <Col
-          span={16}
-          style={{
-            marginLeft: -1,
-            marginRight: -1
-          }}
-        >
           <Card
             title={
               <Select
@@ -121,43 +118,56 @@ const App = () => {
                 style={{ width: 120 }}
               />
             }
-            extra={
-              <Button onClick={handleSubmit} loading={loading} type="primary" style={{ width: '100%' }}>
-                运行
-              </Button>
-            }
             size="small"
           >
             <TextArea
-              rows={10}
-              value={formData.scriptCode}
+              style={{ height: `calc(100vh - ${20 + 50 * 2 + 12 * 4 + 200}px)` }}
+              value={formData.scriptCode.trim()}
               onChange={e => {
                 handleChange({ scriptCode: e.target.value })
               }}
             />
           </Card>
         </Col>
+        <Col span={16}>
+          <Card
+            title={
+              <Button onClick={handleSubmit} loading={loading} type="primary">
+                运行
+              </Button>
+            }
+            extra={
+              <>
+                {!!execData.installPkgsTime && <Tag color="#f50">npm install 时间: {execData.installPkgsTime}ms</Tag>}
+                {!!execData.webpackTime && <Tag color="#87d068">webpack 运行时间: {execData.webpackTime}ms</Tag>}
+                {!!execData.filePath && (
+                  <Button type="primary" href={execData.filePath} target="_blank">
+                    新标签预览
+                  </Button>
+                )}
+              </>
+            }
+            size="small"
+          >
+            {execData.filePath ? (
+              <iframe
+                key={execData.timestap}
+                style={{
+                  display: 'block',
+                  border: 'none',
+                  width: '100%',
+                  height: iframeHeight
+                }}
+                src={execData.filePath}
+              />
+            ) : (
+              <div style={{ height: iframeHeight }}>
+                <Empty description="你还没执行过代码呢" image={Empty.PRESENTED_IMAGE_SIMPLE} />
+              </div>
+            )}
+          </Card>
+        </Col>
       </Row>
-      {runData.filePath && (
-        <Card
-          title={
-            <>
-              {!!runData.installPkgsTime && <Tag color="#f50">npm install 时间: {runData.installPkgsTime}ms</Tag>}
-              <Tag color="#87d068">webpack 运行时间: {runData.webpackTime}ms</Tag>
-            </>
-          }
-          size="small"
-          style={{ marginTop: 10 }}
-        >
-          <iframe
-            key={runData.timestap}
-            width="100%"
-            height="400px"
-            style={{ border: 'none' }}
-            src={runData.filePath}
-          />
-        </Card>
-      )}
     </div>
   )
 }
