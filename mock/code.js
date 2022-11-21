@@ -98,7 +98,12 @@ module.exports = async (req, res) => {
     const { css, js } = injectPublicPath(manifest.index, publicPath)
     const html = generateDocument({
       title: uuid,
-      style: css,
+      style: [
+        ...css,
+        {
+          text: styleCode
+        }
+      ],
       bodyHtml: ['<div id="app"></div>'],
       script: js.map(v => {
         return {

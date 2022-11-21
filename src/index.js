@@ -162,7 +162,11 @@ const App = () => {
               />
             ) : (
               <div style={{ height: iframeHeight }}>
-                <Empty description="你还没执行过代码呢" image={Empty.PRESENTED_IMAGE_SIMPLE} />
+                <Empty
+                  description="你还没执行过代码呢"
+                  image={Empty.PRESENTED_IMAGE_SIMPLE}
+                  style={{ margin: 0, padding: '32px 0' }}
+                />
               </div>
             )}
           </Card>
