@@ -9,7 +9,7 @@ const less = require('less')
 const sass = require('sass')
 const { minify: minifyCss } = require('csso')
 const md5 = require('md5')
-const { flatten, difference, remove } = require('lodash')
+const { flatten, difference, remove, last } = require('lodash')
 const { v4: uuidv4 } = require('uuid')
 const { parse: babelParse } = require('@babel/parser')
 const { getWebpackConfig } = require('@nbfe/react-cli')
@@ -69,7 +69,8 @@ const validateCode = async params => {
     }
   }
   return {
-    code: 0
+    code: 0,
+    message: ''
   }
 }
 
@@ -113,7 +114,7 @@ module.exports = async (req, res) => {
     const { manifest } = readJsonSync(join(webpackConfig.output.path, 'manifest.json'))
     const { css, js } = injectPublicPath(manifest.index, publicPath)
     const html = generateDocument({
-      title: uuid,
+      title: [filename, '码上掘金'].join(' - '),
       style: [
         ...css,
         {
@@ -121,7 +122,14 @@ module.exports = async (req, res) => {
         }
       ],
       bodyHtml: ['<div id="app"></div>'],
-      script: js.map(v => {
+      script: js.map((v, i) => {
+        if (i === js.length - 1) {
+          // 最后一位, 直接 script 注入
+          const jsFilePath = join(webpackConfig.output.path, last(manifest.index.js))
+          return {
+            text: readFileSync(jsFilePath).toString()
+          }
+        }
         return {
           src: v
         }
