@@ -1,3 +1,5 @@
+const MonacoWebpackPlugin = require('monaco-editor-webpack-plugin');
+
 module.exports = ({ isDevelopment }) => {
   return {
     configureWebpack: {
@@ -7,7 +9,8 @@ module.exports = ({ isDevelopment }) => {
         antd: 'antd',
         moment: 'moment',
         lodash: '_'
-      }
+      },
+      plugins: [new MonacoWebpackPlugin()]
     },
     assets: {
       css: ['https://file.ljcdn.com/bs/antd/4.18.7/dist/antd.dark.min.css'],

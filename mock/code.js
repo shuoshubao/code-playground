@@ -9,7 +9,7 @@ const less = require('less')
 const sass = require('sass')
 const { minify: minifyCss } = require('csso')
 const md5 = require('md5')
-const { flatten, difference } = require('lodash')
+const { flatten, difference, remove } = require('lodash')
 const { v4: uuidv4 } = require('uuid')
 const { parse: babelParse } = require('@babel/parser')
 const { getWebpackConfig } = require('@nbfe/react-cli')
@@ -105,6 +105,7 @@ module.exports = async (req, res) => {
   const publicPath = `http://localhost:8080/${uuid}/`
   webpackConfig.output.publicPath = publicPath
   delete webpackConfig.optimization.splitChunks
+  remove(webpackConfig.plugins, v => v.constructor.name === 'MonacoEditorWebpackPlugin')
   try {
     const installPkgsTime = intallPkgs(scriptCode)
     await pify(webpack)(webpackConfig)

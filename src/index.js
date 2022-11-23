@@ -1,59 +1,20 @@
-import React, { useState } from 'react'
+import React, { useRef, useState, useEffect } from 'react'
 import ReactDOM from 'react-dom'
 import { Button, Select, Input, Divider, Card, Row, Col, Tag, Empty, message } from 'antd'
 import axios from 'axios'
+import * as monaco from 'monaco-editor'
+import { StorageKey, StyleLanguages, ScriptLanguages, initialValues, MonacoEditorConfig } from './config'
 
 const { TextArea } = Input
-
-const StorageKey = 'CodePlayground'
-
-const StyleLanguages = [
-  { label: 'css', value: 'css' },
-  { label: 'less', value: 'less' },
-  { label: 'sass', value: 'sass' }
-]
-
-const ScriptLanguages = [
-  {
-    label: 'JavaScript',
-    value: 'javascript'
-  }
-]
-
-const initialValues = {
-  filename: 'demo1',
-  styleLanguage: 'css',
-  scriptLanguage: 'javascript',
-  styleCode: `
-body {
-    padding: 10px;
-}
-`,
-  scriptCode: `
-import React, { useState, useCallback } from 'react'
-import ReactDOM from 'react-dom'
-import { Button, message } from 'antd'
-
-const App = () => {
-    const [count, setCount] = useState(0);
-
-    const handleClick = useCallback(() => {
-      setCount(count + 1);
-      message.info('clicked');
-    }, [count]);
-
-    return <Button type="primary" onClick={handleClick}>click me {count}</Button>;
-};
-
-ReactDOM.render(<App />, document.querySelector('#app'));
-`.trim()
-}
 
 if (!window.localStorage.getItem(StorageKey)) {
   window.localStorage.setItem(StorageKey, JSON.stringify(initialValues))
 }
 
 const App = () => {
+  const cssRef = React.useRef()
+  const jsRef = React.useRef()
+
   const [loading, setLoading] = useState(false)
 
   const [execData, setExecData] = useState({
@@ -66,6 +27,27 @@ const App = () => {
   })
 
   const [formData, setFormData] = useState(JSON.parse(window.localStorage.getItem(StorageKey)))
+
+  useEffect(() => {
+    const cssEditor = monaco.editor.create(cssRef.current, {
+      language: 'css',
+      ...MonacoEditorConfig,
+      value: formData.styleCode
+    })
+    cssEditor.getModel().onDidChangeContent(() => {
+      const value = cssEditor.getValue()
+      handleChange('styleCode', value)
+    })
+    const jsEditor = monaco.editor.create(jsRef.current, {
+      language: 'javascript',
+      ...MonacoEditorConfig,
+      value: formData.scriptCode
+    })
+    jsEditor.getModel().onDidChangeContent(() => {
+      const value = jsEditor.getValue()
+      handleChange('scriptCode', value)
+    })
+  }, [cssRef, jsRef])
 
   const handleChange = (key, value) => {
     const newData = { ...formData, [key]: value }
@@ -88,8 +70,8 @@ const App = () => {
 
   return (
     <div style={{ padding: 10 }}>
-      <Row gutter={[10, 10]}>
-        <Col span={8}>
+      <Row>
+        <Col style={{ width: 500 }}>
           <Card
             title={
               <Select
@@ -103,13 +85,7 @@ const App = () => {
             }
             size="small"
           >
-            <TextArea
-              style={{ height: 200 }}
-              value={formData.styleCode.trim()}
-              onChange={e => {
-                handleChange('styleCode', e.target.value)
-              }}
-            />
+            <div ref={cssRef} style={{ height: 200 }} />
           </Card>
           <Card
             title={
@@ -124,16 +100,10 @@ const App = () => {
             }
             size="small"
           >
-            <TextArea
-              style={{ height: `calc(100vh - ${20 + 50 * 2 + 12 * 4 + 200}px)` }}
-              value={formData.scriptCode.trim()}
-              onChange={e => {
-                handleChange('scriptCode', e.target.value)
-              }}
-            />
+            <div ref={jsRef} style={{ height: `calc(100vh - ${20 + 50 * 2 + 12 * 4 + 200}px)` }} />
           </Card>
         </Col>
-        <Col span={16}>
+        <Col style={{ width: 'calc(100% - 500px)', paddingLeft: 10 }}>
           <Card
             title={
               <Button onClick={handleSubmit} loading={loading} type="primary">
