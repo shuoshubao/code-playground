@@ -7,10 +7,10 @@
     "build": "react-cli build"
   },
   "devDependencies": {
-    "@nbfe/react-cli": "^0.3.0"
+    "@nbfe/react-cli": "^0.3.1",
+    "@nbfe/standard": "^1.0.6"
   },
   "dependencies": {
-    "@nbfe/standard": "^1.0.6",
     "axios": "^1.1.3",
     "execa": "^5.0.0",
     "fs-extra": "^10.1.0",

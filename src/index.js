@@ -8,7 +8,7 @@ const { TextArea } = Input
 const StyleLanguages = [
   { label: 'css', value: 'css' },
   { label: 'less', value: 'less' },
-  { label: 'scss', value: 'scss' }
+  { label: 'sass', value: 'sass' }
 ]
 
 const ScriptLanguages = [
@@ -75,8 +75,6 @@ const App = () => {
     } else {
       setExecData(data)
     }
-    console.log(222)
-    console.log(data)
     setLoading(false)
   }
 

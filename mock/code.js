@@ -5,6 +5,9 @@ const execa = require('execa')
 const pify = require('pify')
 const webpack = require('webpack')
 const prettier = require('prettier')
+const less = require('less')
+const sass = require('sass')
+const { minify: minifyCss } = require('csso')
 const md5 = require('md5')
 const { flatten, difference } = require('lodash')
 const { v4: uuidv4 } = require('uuid')
@@ -70,6 +73,18 @@ const validateCode = async params => {
   }
 }
 
+const getCssCode = async (styleLanguage, styleCode) => {
+  let code
+  if (['css', 'less'].includes(styleLanguage)) {
+    const { css } = await pify(less.render)(styleCode)
+    code = css
+  }
+  if (styleLanguage === 'sass') {
+    code = sass.compileString(styleCode)
+  }
+  return minifyCss(code).css
+}
+
 module.exports = async (req, res) => {
   const { filename, styleLanguage, styleCode, scriptLanguage, scriptCode } = req.body
   const validateRes = await validateCode(req.body)
@@ -101,7 +116,7 @@ module.exports = async (req, res) => {
       style: [
         ...css,
         {
-          text: styleCode
+          text: await getCssCode(styleLanguage, styleCode)
         }
       ],
       bodyHtml: ['<div id="app"></div>'],
@@ -129,7 +144,7 @@ module.exports = async (req, res) => {
     console.log(e)
     return {
       code: 1,
-      msg: e.message
+      message: e.message
     }
   }
 }
