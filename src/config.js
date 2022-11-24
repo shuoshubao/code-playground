@@ -21,7 +21,7 @@ export const initialValues = {
 body {
     padding: 10px;
 }
-`,
+`.trim(),
   scriptCode: `
 import React, { useState, useCallback } from 'react'
 import ReactDOM from 'react-dom'
@@ -39,7 +39,7 @@ const App = () => {
 };
 
 ReactDOM.render(<App />, document.querySelector('#app'));
-`
+`.trim()
 }
 
 export const MonacoEditorConfig = {
